@@ -17,3 +17,6 @@
 /android/obj
 /android/local.properties
 .#*
+*.so.*
+/python/__pycache__
+/__pycache__/
