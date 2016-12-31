@@ -793,6 +793,13 @@ int main(int argc, char **argv) {
 		pslr_shutter(camhandle);
 	    }
 	    pslr_get_status(camhandle, &status);
+		if (debug) {
+			int bufsize = pslr_get_model_buffer_size( camhandle );
+			uint8_t status_buffer[MAX_STATUS_BUF_SIZE];
+			pslr_get_status_buffer(camhandle, status_buffer);
+			hexdump( status_buffer, bufsize > 0 ? bufsize : MAX_STATUS_BUF_SIZE);
+			fflush(stdout);
+		}
 	}
 	if( bracket_index+1 >= bracket_count || frameNo+1>=frames ) {
 	    if( bracket_index+1 < bracket_count ) {
