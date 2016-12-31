@@ -57,6 +57,11 @@ WINDIR=$(TARDIR)-win
 
 pslr.o: pslr_enum.o pslr_scsi.o pslr.c pslr.h
 
+pktriggercord.so: pktriggercord.so.$(VERSION)
+
+pktriggercord.so.$(VERSION): $(OBJS) debug.o
+	$(CC) -shared -fPIC -Wl,-soname,$@ -o $@ $^
+
 pktriggercord-cli: pktriggercord-cli.c $(OBJS)
 	$(CC) $(LIN_CFLAGS) $^ -DVERSION='"$(VERSION)"' -o $@ $(LIN_LDFLAGS) -L.
 
