@@ -1,6 +1,6 @@
 /*
     pkTriggerCord
-    Copyright (C) 2011-2016 Andras Salamon <andras.salamon@melda.info>
+    Copyright (C) 2011-2017 Andras Salamon <andras.salamon@melda.info>
     Remote control of Pentax DSLR cameras.
 
     Support for K200D added by Jens Dreyer <jens.dreyer@udo.edu> 04/2011
@@ -35,6 +35,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -115,42 +116,38 @@ void set_uint32_be(uint32_t v, uint8_t *buf) {
     buf[3] = v;
 }
 
-void hexdump(uint8_t *buf, uint32_t bufLen) {
+char *shexdump(uint8_t *buf, uint32_t bufLen) {
+    char *ret = malloc(2000);
     uint32_t i;
+    sprintf(ret,"%s","");
     for (i = 0; i < bufLen; i++) {
         if (i % 16 == 0) {
-            printf("0x%04x | ", i);
+            sprintf(ret+strlen(ret),"0x%04x | ", i);
 	}
-        printf("%02x ", buf[i]);
+        sprintf(ret+strlen(ret), "%02x ", buf[i]);
         if (i % 8 == 7) {
-            printf(" ");
+            sprintf(ret+strlen(ret), " ");
 	}
         if (i % 16 == 15) {
-            printf("\n");
+            sprintf(ret+strlen(ret), "\n");
 	}
     }
     if (i % 16 != 15) {
-        printf("\n");
+        sprintf(ret+strlen(ret), "\n");
     }
+    return ret;
+}
+
+void hexdump(uint8_t *buf, uint32_t bufLen) {
+    char *dmp = shexdump(buf, bufLen);
+    printf("%s",dmp);
+    free(dmp);
 }
 
 void hexdump_debug(uint8_t *buf, uint32_t bufLen) {
-    uint32_t i;
-    for (i = 0; i < bufLen; i++) {
-        if (i % 16 == 0) {
-            DPRINT("0x%04x | ", i);
-	}
-        DPRINT("%02x ", buf[i]);
-        if (i % 8 == 7) {
-            DPRINT(" ");
-	}
-        if (i % 16 == 15) {
-            DPRINT("\n");
-	}
-    }
-    if (i % 16 != 15) {
-        DPRINT("\n");
-    }
+    char *dmp = shexdump(buf, bufLen);
+    DPRINT("%s",dmp);
+    free(dmp);
 }
 
 int _get_user_jpeg_stars( ipslr_model_info_t *model, int hwqual ) {
@@ -357,6 +354,7 @@ void ipslr_status_parse_common(ipslr_handle_t *p, pslr_status *status, int shift
     status->af_point_select = (*get_uint32_func_ptr)(&buf[0xc4 + shift]);
     status->selected_af_point = (*get_uint32_func_ptr)(&buf[0xc8 + shift]);
     status->shake_reduction = (*get_uint32_func_ptr)(&buf[0xE0 + shift]);
+    status->auto_bracket_picture_counter = (*get_uint32_func_ptr)(&buf[0xE4 + shift]);
     status->jpeg_hue = (*get_uint32_func_ptr)(&buf[0xFC + shift]);
     status->current_shutter_speed.nom = (*get_uint32_func_ptr)(&buf[0x10C + shift]);
     status->current_shutter_speed.denom = (*get_uint32_func_ptr)(&buf[0x110 + shift]);
@@ -575,7 +573,6 @@ void ipslr_status_parse_k1(ipslr_handle_t *p, pslr_status *status) {
     status->lens_id2 = get_uint32_le( &buf[0x1A0]);
 }
 
-// copy of parse_k1
 void ipslr_status_parse_k70(ipslr_handle_t *p, pslr_status *status) {
     uint8_t *buf = p->status_buffer;
     if( debug ) {
@@ -586,6 +583,7 @@ void ipslr_status_parse_k70(ipslr_handle_t *p, pslr_status *status) {
     ipslr_status_parse_common( p, status, 0 );
 // parse_common returns invalid values for the following fields. Fixing the fields:
 
+    status->auto_bracket_picture_counter = get_uint32_le(&buf[0xE8]);
     status->jpeg_hue = get_uint32_le(&buf[0x100]);
     status->current_shutter_speed.nom = get_uint32_le(&buf[0x110]);
     status->current_shutter_speed.denom = get_uint32_le(&buf[0x114]);

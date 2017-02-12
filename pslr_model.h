@@ -1,6 +1,6 @@
 /*
     pkTriggerCord
-    Copyright (C) 2011-2016 Andras Salamon <andras.salamon@melda.info>
+    Copyright (C) 2011-2017 Andras Salamon <andras.salamon@melda.info>
     Remote control of Pentax DSLR cameras.
 
     Support for K200D added by Jens Dreyer <jens.dreyer@udo.edu> 04/2011
@@ -62,6 +62,7 @@ typedef struct {
     uint32_t auto_bracket_mode; // 1: on, 0: off
     pslr_rational_t auto_bracket_ev;
     uint32_t auto_bracket_picture_count;
+    uint32_t auto_bracket_picture_counter;
     uint32_t fixed_iso;
     uint32_t jpeg_resolution;
     uint32_t jpeg_saturation;
@@ -157,6 +158,7 @@ typedef uint32_t (*get_uint32_func)(uint8_t *buf);
 typedef uint16_t (*get_uint16_func)(uint8_t *buf);
 typedef int32_t (*get_int32_func)(uint8_t *buf);
 
+char *shexdump(uint8_t *buf, uint32_t bufLen);
 void hexdump(uint8_t *buf, uint32_t bufLen);
 void hexdump_debug(uint8_t *buf, uint32_t bufLen);
 

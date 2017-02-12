@@ -1,7 +1,7 @@
 /*
     pkTriggerCord
     Remote control of Pentax DSLR cameras.
-    Copyright (C) 2011-2016 Andras Salamon <andras.salamon@melda.info>
+    Copyright (C) 2011-2017 Andras Salamon <andras.salamon@melda.info>
 
     based on:
 
@@ -720,7 +720,7 @@ int main(int argc, char **argv) {
 
     if( dust ) {
 	pslr_dust_removal(camhandle);
-	camera_close(camhandle);	
+	camera_close(camhandle);
 	exit(0);
     }
 
@@ -778,6 +778,7 @@ int main(int argc, char **argv) {
 	} else {
 	    if( frames > 1 ) {
 		printf("Taking picture %d/%d\n", frameNo+1, frames);
+		fflush(stdout);
 	    }
 	    if( status.exposure_mode ==  PSLR_GUI_EXPOSURE_MODE_B ) {
 		DPRINT("bulb\n");

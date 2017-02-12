@@ -802,17 +802,17 @@ Library.
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="quick_gimp_button">
-                <property name="label" translatable="yes">Quick Gimp</property>
+              <object class="GtkButton" id="status_hex_button">
+                <property name="label" translatable="yes">Status Hexdump</property>
+                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <signal handler="quick_gimp_button_clicked_cb" name="clicked"/>
+                <signal handler="status_hex_button_clicked_cb" name="clicked"/>
               </object>
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="pack_type">end</property>
                 <property name="position">3</property>
               </packing>
             </child>
@@ -1042,7 +1042,7 @@ Library.
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label2">
+                              <object class="GtkLabel" id="shutter_scale_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -1127,7 +1127,7 @@ Library.
                             <child>
                               <object class="GtkEntry" id="bulb_exp_value">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can_focus">True</property>
                                 <property name="width_chars">8</property>
                                 <property name="text" translatable="yes">60</property>
                                 <property name="invisible_char_set">True</property>
@@ -1140,7 +1140,7 @@ Library.
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label3">
+                              <object class="GtkLabel" id="bulb_exp_value_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Bulb exp. (s)</property>
@@ -1746,7 +1746,6 @@ Library.
     <property name="width_request">640</property>
     <property name="height_request">480</property>
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Status Info</property>
     <signal handler="statuswindow_delete_event_cb" name="delete_event"/>
     <child>
       <object class="GtkScrolledWindow" id="scrolledwindow1">

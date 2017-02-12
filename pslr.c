@@ -1,6 +1,6 @@
 /*
     pkTriggerCord
-    Copyright (C) 2011-2016 Andras Salamon <andras.salamon@melda.info>
+    Copyright (C) 2011-2017 Andras Salamon <andras.salamon@melda.info>
     Remote control of Pentax DSLR cameras.
 
     Support for K200D added by Jens Dreyer <jens.dreyer@udo.edu> 04/2011
@@ -541,6 +541,7 @@ char *collect_status_info( pslr_handle_t h, pslr_status status ) {
     sprintf(strbuffer+strlen(strbuffer),"%-32s: %s\n", "drive mode", get_pslr_drive_mode_str(status.drive_mode));
     sprintf(strbuffer+strlen(strbuffer),"%-32s: %s\n", "auto bracket mode", status.auto_bracket_mode > 0 ? "on" : "off");
     sprintf(strbuffer+strlen(strbuffer),"%-32s: %d\n", "auto bracket picture count", status.auto_bracket_picture_count);
+    sprintf(strbuffer+strlen(strbuffer),"%-32s: %d\n", "auto bracket picture counter", status.auto_bracket_picture_counter);
     sprintf(strbuffer+strlen(strbuffer),"%-32s: %s\n", "auto bracket ev", format_rational(status.auto_bracket_ev, "%.2f"));
     sprintf(strbuffer+strlen(strbuffer),"%-32s: %s\n", "shake reduction", status.shake_reduction > 0 ? "on" : "off");
     sprintf(strbuffer+strlen(strbuffer),"%-32s: %s\n", "white balance mode", get_pslr_white_balance_mode_str(status.white_balance_mode));
@@ -558,7 +559,7 @@ int pslr_get_status_buffer(pslr_handle_t h, uint8_t *st_buf) {
     ipslr_handle_t *p = (ipslr_handle_t *) h;
     memset( st_buf, 0, MAX_STATUS_BUF_SIZE);
 //    CHECK(ipslr_status_full(p, &p->status));
-    ipslr_status_full(p, &p->status);
+//    ipslr_status_full(p, &p->status);
     memcpy(st_buf, p->status_buffer, MAX_STATUS_BUF_SIZE);
     return PSLR_OK;
 }
@@ -633,13 +634,13 @@ int pslr_test( pslr_handle_t h, bool cmd9_wrap, int subcommand, int argnum,  int
 }
 
 int pslr_set_shutter(pslr_handle_t h, pslr_rational_t value) {
-    DPRINT("[C]\tpslr_set_shutter(%x)\n", value);
+    DPRINT("[C]\tpslr_set_shutter(%x %x)\n", value.nom, value.denom);
     ipslr_handle_t *p = (ipslr_handle_t *) h;
     return ipslr_handle_command_x18( p, true, X18_SHUTTER, 2, value.nom, value.denom, 0);
 }
 
 int pslr_set_aperture(pslr_handle_t h, pslr_rational_t value) {
-    DPRINT("[C]\tpslr_set_aperture(%x)\n", value);
+    DPRINT("[C]\tpslr_set_aperture(%x %x)\n", value.nom, value.denom);
     ipslr_handle_t *p = (ipslr_handle_t *) h;
     return ipslr_handle_command_x18( p, false, X18_APERTURE, 3, value.nom, value.denom, 0);
 }
@@ -651,7 +652,7 @@ int pslr_set_iso(pslr_handle_t h, uint32_t value, uint32_t auto_min_value, uint3
 }
 
 int pslr_set_ec(pslr_handle_t h, pslr_rational_t value) {
-    DPRINT("[C]\tpslr_set_ec(0x%X)\n", value);
+    DPRINT("[C]\tpslr_set_ec(0x%X 0x%X)\n", value.nom, value.denom);
     ipslr_handle_t *p = (ipslr_handle_t *) h;
     return ipslr_handle_command_x18( p, true, X18_EC, 2, value.nom, value.denom, 0);
 }
@@ -676,7 +677,7 @@ int pslr_set_flash_mode(pslr_handle_t h, pslr_flash_mode_t value) {
 }
 
 int pslr_set_flash_exposure_compensation(pslr_handle_t h, pslr_rational_t value) {
-    DPRINT("[C]\tpslr_set_flash_exposure_compensation(%X)\n", value);
+    DPRINT("[C]\tpslr_set_flash_exposure_compensation(%X %X)\n", value.nom, value.denom);
     ipslr_handle_t *p = (ipslr_handle_t *) h;
     return ipslr_handle_command_x18( p, true, X18_FLASH_EXPOSURE_COMPENSATION, 2, value.nom, value.denom, 0);
 }
@@ -968,7 +969,7 @@ uint32_t pslr_buffer_read(pslr_handle_t h, uint8_t *buf, uint32_t size) {
     uint32_t blksz;
     int ret;
 
-    DPRINT("[C]\tpslr_buffer_read(%X, %d)\n", buf, size);
+    DPRINT("[C]\tpslr_buffer_read(%d)\n", size);
 
     /* Find current segment */
     for (i = 0; i < p->segment_count; i++) {
@@ -1502,7 +1503,7 @@ static int read_result(int fd, uint8_t *buf, uint32_t n) {
 
 char *copyright() {
     char *ret = malloc(sizeof(char)*1024);
-    sprintf(ret, "Copyright (C) 2011-2016 Andras Salamon\n\
+    sprintf(ret, "Copyright (C) 2011-2017 Andras Salamon\n\
 \n\
 Based on:\n\
 pslr-shoot (C) 2009 Ramiro Barreiro\n\

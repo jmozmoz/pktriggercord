@@ -1,7 +1,7 @@
 /*
     pkTriggerCord
     Remote control of Pentax DSLR cameras.
-    Copyright (C) 2011-2016 Andras Salamon <andras.salamon@melda.info>
+    Copyright (C) 2011-2017 Andras Salamon <andras.salamon@melda.info>
 
     based on:
 
@@ -605,7 +605,7 @@ static void init_controls(pslr_status *st_new, pslr_status *st_old)
     gtk_widget_set_sensitive(pw, st_new != NULL);
     pw = GTK_WIDGET (gtk_builder_get_object (xml, "status_button"));
     gtk_widget_set_sensitive(pw, st_new != NULL);
-    pw = GTK_WIDGET (gtk_builder_get_object (xml, "quick_gimp_button"));
+    pw = GTK_WIDGET (gtk_builder_get_object (xml, "status_hex_button"));
     gtk_widget_set_sensitive(pw, st_new != NULL);
     pw = GTK_WIDGET (gtk_builder_get_object (xml, "green_button"));
     gtk_widget_set_sensitive(pw, st_new != NULL);
@@ -736,19 +736,21 @@ static gboolean status_poll(gpointer data)
 
     /* shutter speed label */
     if (status_new && (status_new->exposure_mode == PSLR_GUI_EXPOSURE_MODE_B)) {
-      sprintf(buf, "BULB");
-      pw = GTK_WIDGET (gtk_builder_get_object (xml, "label_shutter"));
-      gtk_label_set_text(GTK_LABEL(pw), buf);
-      /* inhibit shutter exposure slide */
-      pw = GTK_WIDGET (gtk_builder_get_object (xml, "shutter_scale"));
-      gtk_widget_set_visible(pw, FALSE);
-      pw = GTK_WIDGET (gtk_builder_get_object (xml, "label2"));
-      gtk_widget_set_visible(pw, FALSE);
+        sprintf(buf, "BULB");
+        pw = GTK_WIDGET (gtk_builder_get_object (xml, "label_shutter"));
+        gtk_label_set_text(GTK_LABEL(pw), buf);
+        /* inhibit shutter exposure slide */
+        pw = GTK_WIDGET (gtk_builder_get_object (xml, "shutter_scale"));
+        gtk_widget_set_visible(pw, FALSE);
+        pw = GTK_WIDGET (gtk_builder_get_object (xml, "shutter_scale_label"));
+        gtk_widget_set_visible(pw, FALSE);
+        gtk_widget_set_visible ( GTK_WIDGET(gtk_builder_get_object(xml, "bulb_exp_value")), TRUE);
+        gtk_widget_set_visible ( GTK_WIDGET(gtk_builder_get_object(xml, "bulb_exp_value_label")), TRUE);
     } else if (status_new && status_new->current_shutter_speed.denom) {
-        if (status_new->current_shutter_speed.nom == 1) {
-            sprintf(buf, "1/%ds", status_new->current_shutter_speed.denom);
-        } else if (status_new->current_shutter_speed.denom == 1) {
+        if (status_new->current_shutter_speed.denom == 1) {
             sprintf(buf, "%ds", status_new->current_shutter_speed.nom);
+        } else if (status_new->current_shutter_speed.nom == 1) {
+            sprintf(buf, "1/%ds", status_new->current_shutter_speed.denom);
         } else {
             sprintf(buf, "%.1fs", (float)status_new->current_shutter_speed.nom / (float) status_new->current_shutter_speed.denom);
         }
@@ -757,8 +759,10 @@ static gboolean status_poll(gpointer data)
 
 	pw = GTK_WIDGET (gtk_builder_get_object (xml, "shutter_scale"));
 	gtk_widget_set_visible(pw, TRUE);
-	pw = GTK_WIDGET (gtk_builder_get_object (xml, "label2"));
+	pw = GTK_WIDGET (gtk_builder_get_object (xml, "shutter_scale_label"));
 	gtk_widget_set_visible(pw, TRUE);
+        gtk_widget_set_visible ( GTK_WIDGET(gtk_builder_get_object(xml, "bulb_exp_value")), FALSE);
+        gtk_widget_set_visible ( GTK_WIDGET(gtk_builder_get_object(xml, "bulb_exp_value_label")), FALSE);
     }
 
     /* ISO label */
@@ -1404,7 +1408,7 @@ G_MODULE_EXPORT void shutter_press(GtkAction *action)
     if (is_bulbing_on == TRUE) {
       is_bulbing_on = FALSE;
       gtk_button_set_label((GtkButton *)widget, "Take picture");
-      /* drop current bulb shooting */
+      /* end current bulb shooting */
       pslr_bulb(camhandle, false);
       if (pslr_get_model_only_limited(camhandle)) {
 	manage_camera_buffers_limited();
@@ -1482,8 +1486,31 @@ G_MODULE_EXPORT void status_button_clicked_cb(GtkAction *action)
     free( collected_status );
 
     pw = GTK_WIDGET (gtk_builder_get_object (xml, "statuswindow"));
+    gtk_window_set_title( (GtkWindow *)pw, "Status Info");
     gtk_widget_show(pw);
 }
+
+G_MODULE_EXPORT void status_hex_button_clicked_cb(GtkAction *action)
+{
+    DPRINT("Status hex");
+    GtkWidget *pw;
+
+    int bufsize = pslr_get_model_buffer_size( camhandle );
+    uint8_t status_buffer[MAX_STATUS_BUF_SIZE];
+    pslr_get_status_buffer(camhandle, status_buffer);
+    char *collected_status_hex = shexdump( status_buffer, bufsize > 0 ? bufsize : MAX_STATUS_BUF_SIZE);
+    GtkLabel *label = GTK_LABEL(GTK_WIDGET (gtk_builder_get_object (xml, "status_label")));
+
+    char *markup = g_markup_printf_escaped ("<tt>%s</tt>", collected_status_hex);
+    gtk_label_set_markup ( label, markup);
+    g_free (markup);
+    free( collected_status_hex );
+
+    pw = GTK_WIDGET (gtk_builder_get_object (xml, "statuswindow"));
+    gtk_window_set_title( (GtkWindow *)pw, "Status Hexdump");
+    gtk_widget_show(pw);
+}
+
 
 G_MODULE_EXPORT void green_button_clicked_cb(GtkAction *action)
 {
@@ -1988,8 +2015,6 @@ G_MODULE_EXPORT void preview_icon_view_selection_changed_cb(GtkAction *action)
 
     pw = GTK_WIDGET (gtk_builder_get_object (xml, "preview_save_as_button"));
     gtk_widget_set_sensitive(pw, en);
-//    pw = GTK_WIDGET (gtk_builder_get_object (xml, "preview_gimp_button"));
-//    gtk_widget_set_sensitive(pw, en);
     pw = GTK_WIDGET (gtk_builder_get_object (xml, "preview_delete_button"));
     gtk_widget_set_sensitive(pw, en);
 }
@@ -2112,9 +2137,6 @@ G_MODULE_EXPORT void preview_save_as_cancel( GtkAction *action ) {
 }
 
 G_MODULE_EXPORT void preview_save_as_save( GtkAction *action ) {
-}
-
-G_MODULE_EXPORT void quick_gimp_button_clicked_cb( GtkAction *action ) {
 }
 
 G_MODULE_EXPORT void preview_delete_button_clicked_cb(GtkAction *action)
